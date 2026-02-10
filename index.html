@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>מסלול מהיר בין כתובות — FREE</title>
+  <style>
+    :root{
+      --bg:#0b1220; --text:#e6eefc; --muted:#a8b3cf; --line:#233256;
+      --btn:#1f2c4d; --btn2:#24355d; --accent:#7aa2ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
+      background: radial-gradient(1000px 700px at 80% -20%, #1a2a55 0%, transparent 60%),
+                  radial-gradient(900px 700px at 10% 10%, #122246 0%, transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:1120px; margin:0 auto; padding:16px;}
+    .titleRow{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
+    h1{margin:0; font-size:20px}
+    .status{display:inline-flex; gap:8px; align-items:center; padding:8px 10px; border:1px solid var(--line); border-radius:999px;
+      background:rgba(255,255,255,0.03); color:var(--muted); font-size:12px;}
+    .spinner{width:14px;height:14px;border-radius:999px;border:2px solid rgba(168,179,207,0.45);border-top-color:rgba(122,162,255,0.95);
+      animation:spin .9s linear infinite; display:none;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .grid{display:grid; gap:12px; grid-template-columns: 1fr;}
+    @media (min-width: 900px){ .grid{ grid-template-columns: 1.35fr 0.65fr; } }
+
+    .panel{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      overflow:hidden;
+    }
+    .panelHead{padding:12px; border-bottom:1px solid rgba(35,50,86,0.9); background: rgba(0,0,0,0.18);}
+    .panelHead .label{font-weight:900; font-size:13.5px;}
+    .panelBody{padding:12px;}
+
+    textarea{
+      width:100%;
+      min-height: 230px;
+      resize: vertical;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid #2b3b64;
+      background: rgba(0,0,0,0.25);
+      color:var(--text);
+      outline:none;
+      line-height:1.45;
+    }
+    textarea::placeholder{color:#7b88ab}
+    textarea:focus{border-color: rgba(122,162,255,0.8); box-shadow: 0 0 0 3px rgba(122,162,255,0.15)}
+    .btnRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;}
+    .btn{
+      cursor:pointer;
+      border:1px solid #2b3b64;
+      background: linear-gradient(180deg, var(--btn2) 0%, var(--btn) 100%);
+      color:var(--text);
+      padding:11px 12px;
+      border-radius:12px;
+      font-weight:800;
+      user-select:none;
+      transition: transform .06s ease, filter .2s ease;
+    }
+    .btn:hover{filter: brightness(1.05)}
+    .btn:active{transform: translateY(1px)}
+    .btn.primary{
+      border-color: rgba(122,162,255,0.7);
+      background: linear-gradient(180deg, rgba(122,162,255,0.25) 0%, rgba(122,162,255,0.14) 100%);
+    }
+    .btn:disabled{opacity:.45; cursor:not-allowed; filter:none}
+
+    .note{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px dashed rgba(168,179,207,0.35);
+      background: rgba(0,0,0,0.18);
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .mapWrap{border-top:1px solid rgba(35,50,86,0.9); background: rgba(0,0,0,0.15);}
+    #map{height: 430px; width:100%;}
+    @media (max-width: 899px){ #map{height: 360px;} }
+
+    .kpis{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .kpi{padding:8px 10px; border-radius:14px; border:1px solid rgba(35,50,86,0.9); background: rgba(0,0,0,0.18); min-width:140px;}
+    .kpi .t{font-size:11.5px; color:var(--muted)}
+    .kpi .v{font-size:14px; font-weight:900; color:var(--text); margin-top:4px}
+
+    .orderBox{margin-top:10px}
+    .orderList{margin:0; padding:0 18px 0 0; color: var(--text); line-height:1.7}
+    .wazeList{margin-top:10px; display:none}
+    .wazeItem{display:flex; gap:10px; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:12px; border:1px solid rgba(35,50,86,0.9); background: rgba(0,0,0,0.18); margin-top:8px;}
+    .wazeItem .t{font-size:12px; color:var(--text); font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+    .wazeItem .sub{font-size:11px; color:var(--muted); margin-top:2px}
+    .wazeItem .left{min-width:0}
+    .wazeItem a{white-space:nowrap; text-decoration:none}
+
+    .settingsRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .chip{display:inline-flex; gap:8px; align-items:center; padding:8px 10px; border-radius:999px; border:1px solid rgba(35,50,86,0.9); background: rgba(0,0,0,0.18); color:var(--muted); font-size:12px;}
+    .chip input{accent-color: var(--accent)}
+    .small{font-size:12px;color:var(--muted)}
+  </style>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+</head>
+<body>
+  <div class="wrap">
+    <div class="titleRow">
+      <h1>מסלול מהיר בין כתובות — FREE</h1>
+      <div class="status">
+        <span id="spin" class="spinner"></span>
+        <span id="statusText">מוכן</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panelHead"><div class="label">מפה עם מסלול שתוכנן</div></div>
+        <div class="panelBody">
+          <div class="btnRow">
+            <a id="wazeBtn" class="btn primary" href="#" target="_blank" rel="noopener"
+               style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;" aria-disabled="true">
+              🚗 פתיחה ב‑Waze (ליעד הבא)
+            </a>
+            <a id="gmapBtn" class="btn" href="#" target="_blank" rel="noopener"
+               style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;" aria-disabled="true">
+              🧭 פתיחה ב‑Google Maps (זהה למסלול)
+            </a>
+            <button id="copyBtn" class="btn" disabled>📋 העתק קישור Google</button>
+          </div>
+
+          <div id="kpis" class="kpis" style="display:none"></div>
+
+          <div id="orderBox" class="note orderBox" style="display:none">
+            <div style="font-weight:900; margin-bottom:6px; color: var(--text)">סדר מסלול מומלץ (הכי קצר שמחבר את כל הנקודות)</div>
+            <ol id="orderList" class="orderList"></ol>
+            <div class="small" style="margin-top:6px">
+              * Google Maps נפתח עם קואורדינטות (lat,lng) כדי שלא “ישנה” כתובות ויסיט את המסלול.
+            </div>
+          </div>
+
+          <div id="wazeList" class="wazeList">
+            <div class="note" style="margin-top:0">
+              <b>Waze:</b> אין קישור רשמי למסלול מרובה עצירות, לכן נותנים ניווט “תחנה‑תחנה”.
+              לחץ על “Waze” ליד כל תחנה לפי הסדר.
+            </div>
+            <div id="wazeItems"></div>
+          </div>
+
+          <div class="note">
+            <b>הערה:</b> בגרסה החינמית אין “עומסים בזמן אמת” באופטימיזציה של הסדר.
+            אבל הניווט בתוך Google Maps/Waze משתמש בעומסים בזמן אמת ועושה reroute תוך כדי.
+          </div>
+        </div>
+        <div class="mapWrap"><div id="map"></div></div>
+      </section>
+
+      <section class="panel">
+        <div class="panelHead"><div class="label">הכנס רשימה של כתובות / שמות מקומות</div></div>
+        <div class="panelBody">
+          <textarea id="addrList" placeholder="שורה = יעד אחד&#10;דוגמא:&#10;קניון עזריאלי תל אביב&#10;דיזנגוף 100 תל אביב&#10;איקאה ראשון לציון&#10;קריית שמונה&#10;31.7683,35.2137"></textarea>
+
+          <div class="settingsRow" style="margin-top:10px">
+            <label class="chip"><input id="autoOrder" type="checkbox" checked> אופטימיזציה מלאה (לא לפי סדר ההכנסה)</label>
+            <label class="chip"><input id="biasIL" type="checkbox" checked> חיפוש בישראל (עוזר לקניונים/יישובים)</label>
+            <label class="chip"><input id="useCache" type="checkbox" checked> Cache (יותר מהיר בפעמים הבאות)</label>
+          </div>
+
+          <div class="btnRow">
+            <button id="confirmBtn" class="btn primary">אישור</button>
+            <button id="clearBtn" class="btn">נקה</button>
+            <button id="clearCacheBtn" class="btn">נקה Cache</button>
+          </div>
+
+          <div class="note">
+            שדרוגים ב‑v3:
+            <ul style="margin:8px 0 0 0; padding:0 18px 0 0">
+              <li>מהיר יותר: Resolver אחד שמנסה Photon (מהיר) ואז Nominatim (חזק) רק אם צריך.</li>
+              <li>אופטימיזציה אמיתית: מחפש מסלול קצר דרך כל הנקודות בלי תלות בסדר ההכנסה.</li>
+              <li>Google Maps זהה למסלול: פתיחה עם קואורדינטות כדי למנוע שינוי כתובות/סדר.</li>
+              <li>Waze עובד: ניווט תחנה‑תחנה עם כפתורים לכל תחנה.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const ui = {
+      spin: $('spin'), statusText: $('statusText'),
+      addrList: $('addrList'), confirmBtn: $('confirmBtn'), clearBtn: $('clearBtn'),
+      wazeBtn: $('wazeBtn'), gmapBtn: $('gmapBtn'), copyBtn: $('copyBtn'),
+      kpis: $('kpis'), orderBox: $('orderBox'), orderList: $('orderList'),
+      wazeList: $('wazeList'), wazeItems: $('wazeItems'),
+      autoOrder: $('autoOrder'), biasIL: $('biasIL'), useCache: $('useCache'), clearCacheBtn: $('clearCacheBtn'),
+    };
+
+    const state = { lastGoogleUrl: '', ordered: [] };
+
+    function setStatus(text, busy=false){
+      ui.statusText.textContent = text;
+      ui.spin.style.display = busy ? 'inline-block' : 'none';
+    }
+    function enc(s){ return encodeURIComponent(String(s).trim()); }
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    }
+    function fmtSeconds(sec){
+      sec = Math.max(0, Math.round(sec));
+      const h = Math.floor(sec/3600);
+      const m = Math.floor((sec%3600)/60);
+      if(h <= 0) return `${m} דק׳`;
+      return `${h} ש׳ ${m} דק׳`;
+    }
+    function fmtKm(meters){
+      const km = meters/1000;
+      if(km < 1) return `${Math.round(meters)} מ׳`;
+      if(km < 10) return `${km.toFixed(1)} ק״מ`;
+      return `${Math.round(km)} ק״מ`;
+    }
+    function parseLines(){
+      return ui.addrList.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    }
+    function setLinkDisabled(a, disabled){
+      if(disabled){
+        a.setAttribute('aria-disabled','true');
+        a.style.opacity = '0.45';
+        a.style.pointerEvents = 'none';
+      }else{
+        a.setAttribute('aria-disabled','false');
+        a.style.opacity = '1';
+        a.style.pointerEvents = 'auto';
+      }
+    }
+
+    // --- Cache ---
+    function normKey(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
+    function cacheKey(region){ return `rp_cache_v3_${region||'any'}`; }
+    function readCache(region){
+      try{ return JSON.parse(localStorage.getItem(cacheKey(region)) || '{}') || {}; }catch(e){ return {}; }
+    }
+    function writeCache(region, obj){
+      try{ localStorage.setItem(cacheKey(region), JSON.stringify(obj)); }catch(e){}
+    }
+    function clearCacheAll(){
+      try{
+        Object.keys(localStorage).forEach(k => { if(k.startsWith('rp_cache_v3_')) localStorage.removeItem(k); });
+      }catch(e){}
+    }
+
+    // --- Map ---
+    const map = L.map('map', { zoomControl:true, scrollWheelZoom:false }).setView([31.77, 35.21], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
+    const layer = L.layerGroup().addTo(map);
+    let routeLine = null;
+
+    function clearMap(){
+      layer.clearLayers();
+      if(routeLine){ routeLine.remove(); routeLine = null; }
+    }
+    function addMarkers(stops){
+      const latlngs = [];
+      stops.forEach((s, idx) => {
+        const ll = L.latLng(s.lat, s.lng);
+        latlngs.push(ll);
+        const badge = String(idx+1);
+        L.marker(ll).addTo(layer).bindPopup(`<b>תחנה ${badge}</b><br>${escapeHtml(s.display)}`);
+      });
+      if(latlngs.length){
+        const bounds = L.latLngBounds(latlngs);
+        map.fitBounds(bounds.pad(0.25));
+      }
+    }
+    function drawGeoJson(geo){
+      if(routeLine){ routeLine.remove(); routeLine = null; }
+      routeLine = L.geoJSON(geo).addTo(map);
+      try{ map.fitBounds(routeLine.getBounds().pad(0.25)); }catch(e){}
+    }
+
+    async function postJson(url, payload){
+      const res = await fetch(url, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const txt = await res.text();
+      let data = null;
+      try{ data = JSON.parse(txt); }catch(e){ data = { raw: txt }; }
+      if(!res.ok){
+        const msg = data && (data.error || data.message) ? (data.error || data.message) : `HTTP ${res.status}`;
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    // --- TSP heuristic: multi-start NN + 2-opt ---
+    function routeCost(order, dur){
+      const INF = 1e15;
+      const d = (i,j) => (dur[i] && dur[i][j] != null ? dur[i][j] : INF);
+      let sum = 0;
+      for(let k=0;k<order.length-1;k++) sum += d(order[k], order[k+1]);
+      return sum;
+    }
+
+    function nnFrom(start, dur){
+      const N = dur.length, INF = 1e15;
+      const d = (i,j) => (dur[i] && dur[i][j] != null ? dur[i][j] : INF);
+      const un = new Set([...Array(N).keys()]);
+      un.delete(start);
+      const order = [start];
+      let cur = start;
+      while(un.size){
+        let best = null, bestVal = INF;
+        for(const cand of un){
+          const v = d(cur, cand);
+          if(v < bestVal){ bestVal = v; best = cand; }
+        }
+        order.push(best);
+        un.delete(best);
+        cur = best;
+      }
+      return order;
+    }
+
+    function twoOptPath(order, dur){
+      let best = order.slice();
+      let bestCost = routeCost(best, dur);
+      const n = best.length;
+      let improved = true;
+
+      // endpoints fixed: index 0 and n-1
+      while(improved){
+        improved = false;
+        for(let i=1;i<n-2;i++){
+          for(let k=i+1;k<n-1;k++){
+            const cand = best.slice();
+            const seg = cand.slice(i, k+1).reverse();
+            cand.splice(i, k-i+1, ...seg);
+            const c = routeCost(cand, dur);
+            if(c + 1e-6 < bestCost){
+              best = cand;
+              bestCost = c;
+              improved = true;
+            }
+          }
+        }
+      }
+      return best;
+    }
+
+    function bestOpenPath(dur){
+      const N = dur.length;
+      let best = null, bestC = 1e18;
+      for(let s=0;s<N;s++){
+        let o = nnFrom(s, dur);
+        o = twoOptPath(o, dur);
+        const c = routeCost(o, dur);
+        if(c < bestC){ bestC = c; best = o; }
+      }
+      return { order: best, cost: bestC };
+    }
+
+    // Google Maps URL: use coordinates to keep route stable
+    function latlng(p){ return `${p.lat.toFixed(6)},${p.lng.toFixed(6)}`; }
+    function buildGoogleMapsDirectionsUrl(ordered){
+      if(!ordered || ordered.length < 2) return '';
+      const origin = latlng(ordered[0]);
+      const dest = latlng(ordered[ordered.length-1]);
+      let url = `https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=${enc(origin)}&destination=${enc(dest)}`;
+      if(ordered.length > 2){
+        const wp = ordered.slice(1,-1).map(latlng).join('|');
+        url += `&waypoints=${enc(wp).replace(/%7C/g,'%7C')}`;
+      }
+      url += '&dir_action=navigate';
+      return url;
+    }
+
+    // Waze: single destination only
+    function buildWazeUrl(p){
+      return `https://waze.com/ul?ll=${enc(latlng(p))}&navigate=yes`;
+    }
+
+    function showKpis(meta){
+      ui.kpis.style.display = 'flex';
+      ui.kpis.innerHTML = `
+        <div class="kpi"><div class="t">זמן משוער</div><div class="v">${fmtSeconds(meta.duration_s || 0)}</div></div>
+        <div class="kpi"><div class="t">מרחק משוער</div><div class="v">${fmtKm(meta.distance_m || 0)}</div></div>
+        <div class="kpi"><div class="t">אופטימיזציה</div><div class="v">${ui.autoOrder.checked ? 'מלאה' : 'לפי סדר'}</div></div>
+      `;
+    }
+
+    function showOrder(ordered){
+      ui.orderBox.style.display = 'block';
+      ui.orderList.innerHTML = ordered.map((p) => `<li>${escapeHtml(p.display)}</li>`).join('');
+    }
+
+    function showWazeStops(ordered){
+      ui.wazeList.style.display = 'block';
+      ui.wazeItems.innerHTML = '';
+      ordered.forEach((p, idx) => {
+        const el = document.createElement('div');
+        el.className = 'wazeItem';
+        el.innerHTML = `
+          <div class="left">
+            <div class="t">${idx+1}. ${escapeHtml(p.display)}</div>
+            <div class="sub">${latlng(p)}</div>
+          </div>
+          <a class="btn primary" href="${buildWazeUrl(p)}" target="_blank" rel="noopener">Waze</a>
+        `;
+        ui.wazeItems.appendChild(el);
+      });
+    }
+
+    function enableLinks(googleUrl, ordered){
+      state.lastGoogleUrl = googleUrl || '';
+      state.ordered = ordered || [];
+
+      ui.gmapBtn.href = googleUrl || '#';
+      setLinkDisabled(ui.gmapBtn, !googleUrl);
+      ui.copyBtn.disabled = !googleUrl;
+
+      // main waze button -> first stop
+      const wazeTarget = (state.ordered && state.ordered[0]) ? buildWazeUrl(state.ordered[0]) : '';
+      ui.wazeBtn.href = wazeTarget || '#';
+      setLinkDisabled(ui.wazeBtn, !wazeTarget);
+    }
+
+    async function copyText(text){
+      try{ await navigator.clipboard.writeText(text); setStatus('הועתק ✅', false); }
+      catch(e){
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        setStatus('הועתק ✅', false);
+      }
+    }
+
+    function preprocessQuery(q, region){
+      q = String(q||'').trim();
+      if(!q) return q;
+      if(q.match(/^\s*-?\d+(\.\d+)?\s*[, ]\s*-?\d+(\.\d+)?\s*$/)) return q;
+      if(region === 'il'){
+        const hasCountry = /ישראל|israel/i.test(q);
+        if(!hasCountry) q = q + ' ישראל';
+      }
+      return q;
+    }
+
+    async function resolveAll(raw){
+      const region = ui.biasIL.checked ? 'il' : 'any';
+      const cacheEnabled = ui.useCache.checked;
+      const cache = cacheEnabled ? readCache(region) : {};
+
+      const prepared = raw.map(q => preprocessQuery(q, region));
+      const need = [];
+      const resolved = new Array(prepared.length);
+
+      for(let i=0;i<prepared.length;i++){
+        const key = normKey(prepared[i]);
+        if(cache[key]){
+          resolved[i] = cache[key];
+        }else{
+          need.push({ idx:i, q: prepared[i], key });
+        }
+      }
+
+      if(need.length){
+        setStatus(`מאתר ${need.length} יעדים...`, true);
+        const out = await postJson('/.netlify/functions/resolve_places', {
+          queries: need.map(x => x.q),
+          region
+        });
+
+        if(!out || !Array.isArray(out.resolved) || out.resolved.length !== need.length){
+          throw new Error('Resolver החזיר תוצאה לא תקינה.');
+        }
+
+        need.forEach((x, j) => {
+          resolved[x.idx] = out.resolved[j];
+          if(cacheEnabled) cache[x.key] = out.resolved[j];
+        });
+
+        if(cacheEnabled) writeCache(region, cache);
+      }
+
+      return resolved;
+    }
+
+    async function onConfirm(){
+      try{
+        clearMap();
+        ui.kpis.style.display = 'none';
+        ui.orderBox.style.display = 'none';
+        ui.wazeList.style.display = 'none';
+        enableLinks('', []);
+
+        const raw = parseLines();
+        if(raw.length < 2){ alert('צריך לפחות 2 שורות (2 יעדים).'); return; }
+        if(raw.length > 20){ alert('בגרסה החינמית מומלץ עד 20 יעדים.'); return; }
+
+        ui.confirmBtn.disabled = true;
+
+        // 1) resolve (fast + cache)
+        const resolved = await resolveAll(raw);
+
+        // 2) duration matrix
+        setStatus('מחשב זמני נסיעה...', true);
+        const points = resolved.map(p => ({lat:p.lat, lng:p.lng}));
+        const tab = await postJson('/.netlify/functions/matrix_osrm', { points });
+        const durations = tab.durations;
+        if(!durations || !durations.length) throw new Error('OSRM table חסר.');
+
+        // 3) order optimization
+        let orderIdx = [...Array(resolved.length).keys()];
+        if(ui.autoOrder.checked){
+          setStatus('מחשב את המסלול הקצר ביותר...', true);
+          const best = bestOpenPath(durations);
+          orderIdx = best.order;
+        }
+        const ordered = orderIdx.map(i => resolved[i]);
+
+        // 4) route geometry
+        setStatus('בונה מסלול...', true);
+        const rt = await postJson('/.netlify/functions/route_osrm', { points: ordered.map(p => ({lat:p.lat, lng:p.lng})) });
+
+        addMarkers(ordered);
+        if(rt.geometry) drawGeoJson(rt.geometry);
+
+        showKpis({ distance_m: rt.distance_m || 0, duration_s: rt.duration_s || 0 });
+        showOrder(ordered);
+        showWazeStops(ordered);
+
+        // 5) links
+        const googleUrl = buildGoogleMapsDirectionsUrl(ordered);
+        enableLinks(googleUrl, ordered);
+
+        setStatus('הסתיים ✅', false);
+      }catch(err){
+        console.error(err);
+        alert(err && err.message ? err.message : String(err));
+        setStatus('שגיאה', false);
+      }finally{
+        ui.confirmBtn.disabled = false;
+      }
+    }
+
+    ui.confirmBtn.addEventListener('click', onConfirm);
+    ui.clearBtn.addEventListener('click', () => { ui.addrList.value = ''; });
+    ui.copyBtn.addEventListener('click', () => state.lastGoogleUrl && copyText(state.lastGoogleUrl));
+    ui.clearCacheBtn.addEventListener('click', () => { clearCacheAll(); setStatus('Cache נוקה ✅', false); });
+
+    setLinkDisabled(ui.gmapBtn, true);
+    setLinkDisabled(ui.wazeBtn, true);
+    setStatus('מוכן', false);
+  </script>
+</body>
+</html>
